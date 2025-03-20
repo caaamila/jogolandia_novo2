@@ -19,9 +19,30 @@ export default function qisso() {
     const [selectedImageUri, setSelectedImageUri] = useState('');
     const [showOptionsModal, setShowOptionsModal] = useState(false); // Estado para controlar o modal
     const [results, setResults] = useState<ClassificationProps[]>([]);
-    const [targetObject, setTargetObject] = useState('uma maçã'); // Objeto que a criança tem que encontrar (exemplo: maçã)
+    const targetObjects = [
+        { name: 'uma maçã', image: require('../../assets/images/maça.png') },
+        { name: 'um cão', image: require('../../assets/images/cao.png') },
+        { name: 'um gato', image: require('../../assets/images/gato.png') },
+        { name: 'um lápis', image: require('../../assets/images/lapis.png') },
+        { name: 'uma flor', image: require('../../assets/images/flor.png') },
+        { name: 'uma cadeira', image: require('../../assets/images/cadeira.png') },
+    ];
+    const [targetObject, setTargetObject] = useState(targetObjects[0]);
+    const [currentTargetIndex, setCurrentTargetIndex] = useState(0); // Para seguir uma sequência
     const [gameStarted, setGameStarted] = useState(false);
     const navigation = useNavigation();
+    const [foundObjectsCount, setFoundObjectsCount] = useState(0);
+
+    const chooseRandomTarget = () => {
+        const randomIndex = Math.floor(Math.random() * targetObjects.length);
+        setTargetObject(targetObjects[randomIndex]);
+    };
+
+    const nextTarget = () => {
+        const nextIndex = (currentTargetIndex + 1) % targetObjects.length;
+        setCurrentTargetIndex(nextIndex);
+        setTargetObject(targetObjects[nextIndex]);
+    };
 
     useEffect(() => {
         navigation.setOptions({
@@ -125,13 +146,22 @@ export default function qisso() {
         const classificationResult = await model.classify(imageTensor);
         setResults(classificationResult);
 
-        // Verificar se o objeto classificado é o alvo
-        const isCorrect = classificationResult.some((result) => result.className.toLowerCase().includes(targetObject));
+         const isCorrect = classificationResult.some((result) => 
+            result.className.toLowerCase().includes(targetObject.name.toLowerCase())
+        );
+
         if (isCorrect) {
-            alert('Parabéns, você encontrou o objeto certo!');
-        } else {
-            alert('Tente novamente!');
+            alert(`Parabéns, você encontrou ${targetObject.name}!`);
+            setFoundObjectsCount(foundObjectsCount + 1);
+            nextTarget();
         }
+        <Text style={styles.counterText}>Objetos encontrados: {foundObjectsCount}</Text>
+    }
+
+    if (foundObjectsCount === targetObjects.length) {
+        alert('Parabéns, você encontrou todos os objetos!');
+        setGameStarted(false); // Reinicia o jogo
+        setFoundObjectsCount(0); // Reseta a contagem
     }
 
     return (
@@ -139,13 +169,11 @@ export default function qisso() {
             <View style={styles.container}>
                 <StatusBar style="light" backgroundColor="transparent" translucent />
                 
-                {/* Tela inicial do jogo */}
                 {!gameStarted ? (
                     <View style={styles.instructionContainer}>
-                        <Text style={styles.instructionText}>Encontra {targetObject}!</Text>
-                        {/* Exibir uma imagem do objeto que a criança precisa procurar */}
+                        <Text style={styles.instructionText}>Encontra {targetObject.name}!</Text>
                         <Image 
-                            source={require(`../../assets/images/maça.png`)} // Coloque a imagem correspondente
+                            source={targetObject.image} // Exibe a imagem do objeto atual
                             style={styles.targetImage} 
                         />
                         <TouchableOpacity 
@@ -205,10 +233,13 @@ export default function qisso() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 25,
+        flex: 1, 
+        width: '100%',  
+        height: '100%', 
+        resizeMode: 'cover', // Isso garante que a imagem preencha a tela
+        position: 'absolute' ,
+         justifyContent: 'center', 
+         alignItems: 'center'
     },
     instructionContainer: {
         justifyContent: 'center',
@@ -225,15 +256,19 @@ const styles = StyleSheet.create({
         width: wp(70),
         height: hp(30),
         marginBottom: 20,
-        borderRadius: 10,
+        borderRadius: 20,
         backgroundColor: '#fff',
+        shadowOpacity: 0.8,
+        shadowRadius: 10,
+        elevation: 3,
+        padding: 5,
     },
     gameContainer: {
         justifyContent: 'center',
         alignItems: 'center',
     },
     image: {
-        marginTop: wp(5),
+        marginTop: wp(15),
         width: wp(80),
         height: hp(39),
         borderRadius: hp(2.5),
@@ -258,13 +293,14 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: '#3ec630',
-        paddingVertical: 12,
-        paddingHorizontal: 24,
+        paddingVertical: wp(2),
+        paddingHorizontal: hp(2.5),
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        height: 60,
+        height: hp(7),
         zIndex: 1,
+        marginBottom: hp(6),
     },
     title: {
         color: "#FFF",
@@ -279,7 +315,7 @@ const styles = StyleSheet.create({
         height: hp(6),
         position: 'absolute',
         borderRadius: 20,
-        bottom: hp(-1),
+        bottom: hp(5),
         zIndex: 0,
     },
     modalOverlay: {
@@ -315,5 +351,11 @@ const styles = StyleSheet.create({
     cancelText: {
         fontSize: 16,
         color: '#FF3B30',
+    },
+    counterText: {
+        fontFamily: "outfit-medium",
+        fontSize: wp(5),
+        color: Colors.DARKBLUE,
+        marginBottom: 20,
     },
 });

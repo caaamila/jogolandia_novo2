@@ -1,37 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Image, FlatList, Modal } from 'react-native';
-import { useRouter } from 'expo-router'; // Expo Router
+import AntDesign from '@expo/vector-icons/AntDesign';
+import { useRouter } from 'expo-router'; 
 import Colors from '../../constants/Colors';
 import { collection, getDocs } from '@firebase/firestore';
 import { db } from '../../config/FirebaseConfig';
 import Category from '../../components/Home/Category';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import Colorir from '../game/colorir'; // Importa o componente do jogo Colorir
-import CuboMagico from '../game/cubomagico'; // Importa o componente do jogo CuboMagico
+import Colorir from '../game/colorir';
+import CuboMagico from '../game/cubomagico'; 
+import Qisso from '../game/qisso'; 
+
 
 export default function Jogos() {
   const router = useRouter();
 
-  // Estados
   const [allGames, setAllGames] = useState([]); // Todos os jogos
   const [filteredGames, setFilteredGames] = useState([]); // Jogos filtrados
   const [loader, setLoader] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [currentGame, setCurrentGame] = useState(null); // Jogo selecionado
 
-  // Função para abrir o jogo no modal
   const openGame = (game) => {
-    setCurrentGame(game); // Define o jogo selecionado
-    setModalVisible(true); // Abre o modal
+    setCurrentGame(game); 
+    setModalVisible(true);
   };
 
-  // Função para fechar o modal
   const closeModal = () => {
-    setModalVisible(false); // Fecha o modal
-    setCurrentGame(null); // Limpa o jogo selecionado
+    setModalVisible(false); 
+    setCurrentGame(null); 
   };
+  
+  const CloseBtn = () => {
+    return (
+    <TouchableOpacity 
+        onPress={closeModal}
+        style={styles.closeButton} // Adicione o estilo aqui
+      >
+        <AntDesign name="close" size={24} color="black" />      
+    </TouchableOpacity>
+    );
+  }
 
-  // Função para buscar todos os jogos
   const GetAllGames = async () => {
     setLoader(true);
     try {
@@ -60,7 +70,6 @@ export default function Jogos() {
     }
   };
 
-  // Carregar todos os jogos na montagem do componente
   useEffect(() => {
     GetAllGames();
   }, []);
@@ -89,25 +98,24 @@ export default function Jogos() {
             <Text style={styles.name}>{item.name}</Text>
           </TouchableOpacity>
         )}
+        contentContainerStyle={styles.flatListContent} // Adicione isso
       />
 
-      {/* Modal para exibir os jogos */}
+     
       <Modal
         visible={modalVisible}
-        onRequestClose={closeModal} // Fecha o modal ao pressionar o botão de voltar (Android)
+        onRequestClose={closeModal}
         animationType="slide"
         transparent={false}
       >
         <View style={styles.modalContainer}>
-          {/* Botão de Fechar Fixo no Topo */}
-          <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-            <Text style={styles.closeText}> X </Text>
-          </TouchableOpacity>
-
           {/* Renderiza o jogo dinamicamente */}
+          <CloseBtn></CloseBtn>
           <View style={styles.gameContainer}>
             {currentGame?.name === 'Colorir' && <Colorir />}
             {currentGame?.name === 'Cubo dos Sentidos' && <CuboMagico />}
+            {currentGame?.name === 'Caçar objetos' && <Qisso />}
+
           </View>
         </View>
       </Modal>
@@ -115,18 +123,17 @@ export default function Jogos() {
   );
 }
 
-// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: hp(2),
+    paddingTop: hp(1),
   },
   titulo: {
     fontSize: wp(9),
     color: Colors.DARKBLUE,
     fontFamily: 'outfit-medium',
-    marginBottom: hp(1),
+    marginBottom: hp(-2),
     marginTop: hp(3),
   },
   categoryContainer: {
@@ -175,17 +182,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeButton: {
-    position: 'absolute', // Mantém o botão fixo na tela
-    top: 40, // Distância do topo
-    right: 20, // Distância da direita
-    backgroundColor: 'gray',
-    padding: 10,
-    borderRadius: 20,
-    zIndex: 10, // Garante que fique sobre qualquer conteúdo
+    position: 'absolute', 
+    padding: wp(2),
+    backgroundColor: 'transparent', 
+    zIndex: 1, 
   },
-  closeText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
+
+  flatListContent: {
+    flexGrow: 1,
+    paddingBottom: hp(9), // Ajuste conforme necessário
   },
 });

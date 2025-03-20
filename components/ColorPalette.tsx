@@ -26,11 +26,10 @@ const ColorPalette = ({ currentColor, changeColor }: ColorPaletteProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
-        source={require('../assets/images/cepo_demadera.jpg')}  // Caminho correto para a sua imagem
+        source={require('../assets/images/cepo_demadera.jpg')}  
         style={styles.backgroundImage}  resizeMode="cover" // Ajuste da imagem
         imageStyle={styles.imageStyle} // Aplica bordas arredondadas na imagem
-
-      >
+        >
         <SafeAreaView style={styles.paletacontainer}>
           {colors.map((color) => {
             const activeClass = currentColor === color;
@@ -59,6 +58,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1, // Faz com que o container ocupe toda a tela disponível
     marginBottom: hp(19),
+    marginTop: hp(5),
   },
   backgroundImage: {
     flex: 1, // Faz a imagem de fundo ocupar todo o espaço do container
@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
     borderWidth: hp(0.16),
     borderColor: 'black',
     borderRadius: 10,
+    marginTop: hp(1.3),
   },
   active: {
     elevation: 5,
