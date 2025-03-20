@@ -1,8 +1,8 @@
 import { View, Text, Image, Pressable, SafeAreaView, Animated } from 'react-native'
-import React, { useCallback, useRef } from 'react'
+import React, { useCallback, useRef, useEffect } from 'react'
 import Colors from '../../constants/Colors'
 import * as WebBrowser from 'expo-web-browser'
-import { useOAuth } from '@clerk/clerk-expo'
+import { useOAuth, useAuth } from '@clerk/clerk-expo'
 import AntDesign from '@expo/vector-icons/AntDesign'
 import * as Linking from 'expo-linking'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
@@ -18,15 +18,22 @@ export const useWarmUpBrowser = () => {
 
 WebBrowser.maybeCompleteAuthSession()
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   useWarmUpBrowser();
   const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' })
+  const { isSignedIn } = useAuth();
 
-  const scaleAnim = useRef(new Animated.Value(1)).current; // Estado de animação
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isSignedIn) {
+      navigation.replace('home'); // Redireciona para a página inicial se já estiver logado
+    }
+  }, [isSignedIn, navigation]);
 
   const onPressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.9, // Reduz um pouco o tamanho ao pressionar
+      toValue: 0.9,
       useNativeDriver: true,
       speed: 20,
     }).start();
@@ -34,7 +41,7 @@ export default function LoginScreen() {
 
   const onPressOut = () => {
     Animated.spring(scaleAnim, {
-      toValue: 1, // Volta ao tamanho normal ao soltar
+      toValue: 1,
       useNativeDriver: true,
       speed: 20,
     }).start();

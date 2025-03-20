@@ -1,5 +1,4 @@
-import React from 'react';
-
+import React from 'react'; 
 import {
   View,
   Text,
@@ -9,13 +8,14 @@ import {
   StyleSheet,
   ImageBackground,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import Colors from '../../constants/Colors';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 
 export default function Profile() {
-  const { isSignedIn, signOut } = useAuth();
+  const { isSignedIn, signOut, isLoaded } = useAuth();
   const { user } = useUser();
   const router = useRouter();
 
@@ -28,11 +28,19 @@ export default function Profile() {
     }
   };
 
+  if (!isLoaded) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.YELLOW} />
+      </SafeAreaView>
+    );
+  }
+
   if (!isSignedIn) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>
-          Por favor, faça login para acessar o seu perfil.
+          Por favor, faça login para aceder ao seu perfil.
         </Text>
         <Pressable
           style={styles.loginButton}
@@ -50,29 +58,24 @@ export default function Profile() {
       style={styles.background}
     >
       <SafeAreaView style={styles.container}>
-        {/* Card com informações do usuário */}
         <View style={styles.card}>
-          {/* Foto do Usuário */}
           {user?.imageUrl ? (
             <Image source={{ uri: user?.imageUrl }} style={styles.profileImage} />
           ) : (
             <Image
-              source={require('../../assets/images/boneki.png')} // Imagem padrão
+              source={require('../../assets/images/boneki.png')}
               style={styles.profileImage}
             />
           )}
-  
-          {/* Nome do Usuário */}
+
           <Text style={styles.nameText}>
             {user?.firstName || 'Utilizador'} {user?.lastName || ''}
           </Text>
-  
-          {/* Email do Usuário */}
+
           <Text style={styles.emailText}>
             {user?.emailAddresses[0]?.emailAddress || 'Email não encontrado'}
           </Text>
-  
-          {/* Botão de Logout */}
+
           <Pressable style={styles.logoutButton} onPress={handleSignOut}>
             <Text style={styles.logoutText}>Sair</Text>
           </Pressable>
@@ -80,7 +83,6 @@ export default function Profile() {
       </SafeAreaView>
     </ImageBackground>
   );
-  
 }
 
 const styles = StyleSheet.create({
@@ -106,7 +108,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 5, // Para sombras no Android
+    elevation: 5,
   },
   profileImage: {
     width: 120,
@@ -128,7 +130,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logoutButton: {
-    backgroundColor: Colors.YELLOW, // Amarelo sólido
+    backgroundColor: Colors.YELLOW,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,

@@ -7,6 +7,7 @@ import { db } from '../../config/FirebaseConfig';
 import Category from '../../components/Home/Category';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Colorir from '../game/colorir'; // Importa o componente do jogo Colorir
+import CuboMagico from '../game/cubomagico'; // Importa o componente do jogo CuboMagico
 
 export default function Jogos() {
   const router = useRouter();
@@ -16,11 +17,18 @@ export default function Jogos() {
   const [filteredGames, setFilteredGames] = useState([]); // Jogos filtrados
   const [loader, setLoader] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [currentGame, setCurrentGame] = useState(null); // Declare currentGame state
+  const [currentGame, setCurrentGame] = useState(null); // Jogo selecionado
 
+  // Função para abrir o jogo no modal
   const openGame = (game) => {
-    setCurrentGame(game); // Defina o jogo que foi clicado
-    setModalVisible(true); // Abre o modal para renderizar o jogo
+    setCurrentGame(game); // Define o jogo selecionado
+    setModalVisible(true); // Abre o modal
+  };
+
+  // Função para fechar o modal
+  const closeModal = () => {
+    setModalVisible(false); // Fecha o modal
+    setCurrentGame(null); // Limpa o jogo selecionado
   };
 
   // Função para buscar todos os jogos
@@ -57,18 +65,6 @@ export default function Jogos() {
     GetAllGames();
   }, []);
 
-  useEffect(() => {
-    if (currentGame) {
-      // Verifica se `currentGame.asset` é válido e direciona para a página correta
-      if (currentGame.asset) {
-        // Navega para a tela do jogo baseado no nome do arquivo (como 'colorir')
-        router.push(`/game/${currentGame.asset}`); // Navegar para a tela específica
-      } else {
-        console.error('Jogo não possui uma propriedade "asset" válida');
-      }
-    }
-  }, [currentGame, router]);
-
   return (
     <ImageBackground source={require('../../assets/images/nuvem_back_light.png')} style={styles.container}>
       {/* Título */}
@@ -87,11 +83,7 @@ export default function Jogos() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => {
-              // Defina o jogo que foi clicado e abra o modal
-              setCurrentGame(item); // Defina o jogo clicado
-              setModalVisible(true); // Abre o modal
-            }}
+            onPress={() => openGame(item)} // Abre o modal com o jogo selecionado
           >
             <Image source={{ uri: item.imageUrl }} style={styles.imagem} />
             <Text style={styles.name}>{item.name}</Text>
@@ -99,21 +91,31 @@ export default function Jogos() {
         )}
       />
 
-      {/* Modal para exibir o jogo */}
-      <Modal visible={modalVisible} onRequestClose={() => setModalVisible(false)} animationType="slide" transparent={false}>
+      {/* Modal para exibir os jogos */}
+      <Modal
+        visible={modalVisible}
+        onRequestClose={closeModal} // Fecha o modal ao pressionar o botão de voltar (Android)
+        animationType="slide"
+        transparent={false}
+      >
         <View style={styles.modalContainer}>
-          <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-            <Text style={styles.closeText}>Fechar</Text>
+          {/* Botão de Fechar Fixo no Topo */}
+          <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+            <Text style={styles.closeText}> X </Text>
           </TouchableOpacity>
 
-          {/* Renderiza o jogo, aqui você pode substituir pelo componente do jogo */}
-          {currentGame?.name === 'Colorir' && <Colorir />}
+          {/* Renderiza o jogo dinamicamente */}
+          <View style={styles.gameContainer}>
+            {currentGame?.name === 'Colorir' && <Colorir />}
+            {currentGame?.name === 'Cubo dos Sentidos' && <CuboMagico />}
+          </View>
         </View>
       </Modal>
     </ImageBackground>
   );
 }
 
+// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -165,19 +167,25 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'white',
   },
+  gameContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   closeButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
+    position: 'absolute', // Mantém o botão fixo na tela
+    top: 40, // Distância do topo
+    right: 20, // Distância da direita
     backgroundColor: 'gray',
     padding: 10,
     borderRadius: 20,
+    zIndex: 10, // Garante que fique sobre qualquer conteúdo
   },
   closeText: {
     color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });
